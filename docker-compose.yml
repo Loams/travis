@@ -11,10 +11,11 @@ services:
     depends_on:
       - app
   app:
-    build: ./docker/php
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
     volumes:
       - .:/var/code
-    working_dir: /var/code
     links:
       - db
   db:
