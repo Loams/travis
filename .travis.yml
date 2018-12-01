@@ -3,16 +3,46 @@ dist: xenial
 language: php
 php: '7.2'
 services:
-  - docker
-  - mysql
+- docker
+- mysql
 before_install:
-  - composer global require 'hirak/prestissimo:^0.3'
-  - mysql -e 'CREATE DATABASE unittest;'
-  - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('test') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-  - sudo mysql_upgrade -u root -ptest
-  - sudo service mysql restart
+- composer global require 'hirak/prestissimo:^0.3'
+- mysql -e 'CREATE DATABASE unittest;'
+- sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('test')
+  where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+- sudo mysql_upgrade -u root -ptest
+- sudo service mysql restart
 script:
-  - set -e
-  - ./build/composer.sh
-  - vendor/bin/phpunit
-  - ./build/build.sh
+- set -e
+- "./build/composer.sh"
+- vendor/bin/phpunit
+- "./build/build.sh"
+before_deploy:
+  - >
+    if ! [ "$DEPLOY_COUNT" ]; then
+      export DEPLOY_COUNT=0;
+    fi;
+    export ELASTIC_BEANSTALK_LABEL=${TRAVIS_BRANCH/\//-}-${TRAVIS_JOB_NUMBER}-${DEPLOY_COUNT};
+    export DEPLOY_COUNT=$(($DEPLOY_COUNT + 1));
+    if ! [ "$BEFORE_DEPLOY_RUN" ]; then
+      export BEFORE_DEPLOY_RUN=1;
+      ./build/before_deploy.sh
+
+##deploy:
+##- provider: elasticbeanstalk
+##  access_key_id: "$AWS_ACCESS_KEY"
+##  secret_access_key: "$AWS_SECRET_KEY"
+##  region: eu-west-3
+##  app: ${APPLICATION}
+##  env: ${APPLICATION}
+##  bucket_name: local-travis-deploy-test
+##  zip_file: travis_app_deploy.zip
+##  skip_cleanup: true
+##  only_create_app_version: true
+env:
+  global:
+  - APPLICATION=travis
+  #AWS_ACCESS_KEY
+  - secure: 5yWYBXGOWATf8G0VbbL4gf2El+N/UbIxynQt8BMcMCIOaBJESeCt6oBT+v3fiB0c8srnA4VI0+4uqf8Yn0xAew6mCJz4SmLSnkz7mXS/OnrnxHM5UVJVZEctnx+ZzVdbUrBr+eG5Sjno97q+mjwYrH7L0910e+MS4UnzhJCRMhRGoAkg8Bjxkd0cgQ3CsBU2esz2hk6aTVYy4b6AZST3UlYxn5rnkmmUftwISyoppelEVQ6VA9tjfDcC+OFXg2UXkb6XIbaV9DfRVIpuogI6/KXNB+rEGgI9O7kwphuZCKE3LS5oblwlS5f7ygaY5/I0nSkUhvjlXcslF7gBQjt9x6MMoI6rijYpwvatd6Ye5t/gtKoH3nXiOcWZdvP7P1BHyDHRSfb6qTjiYxLug0EhG6rD0hmrR6ARsUjUA46PGjgmPxX/7aYT3D9E22+5fL8INiWvSHQjnCZFI9py1ochfcE4fFUU5us/RZBQJtdnAVRCVZW93gy9th7mPdGRtqnnfRbKhB8oRCDnayCJe2ePU26+4sEBNK6f8m0rj9bY7WCvzIE/b+dvguk8gx9qUe0TKNj/22OY+Ou+W+K1xZpQmNwDNNSUtnCqHFHA3jangDig4wClbYmvrJnY4TZIP2yWb1tXPWCcpPakNZojmb90/xQKZfnt4RAsgOHW8cjPqsg=
+  #AWS_SECRET_KEY
+  - secure: LZwf3CTMHpsL0Wiv2lzrqF9hvF5B+Vzg6KbXCsKm0Y5uJmSvv4Pff2SQktGZPXd6KY6K2XP+UjLHgS3U2StNVhaZbhHKbcNcrdVyelvx4jCeWv6oTXCcBERAdy6MME1hb87O70Kncb4PPeXAxeKeckWrG3ipWlVHJrAZLhG7OyRKeuZqhO5BENF4d0x2kRkdLHTeNlpmB3LRrucoy4lxOS+X2Yq22dZcLGDmW2m/MKDDKw3QaT75SWCBDVESe1Y8qgViUOVzgE3+DgMWjYqGnJ0eDLSWTgu6tzeaFMtjtbSsAfwpDi/Cb+JR3xFzuhe5oQWvUcMXaaoND+QfuFYFrPdFciMxOVWa3+QfH6DE0XM1WsiRG0mQ96VkmSrC9t3cANwCo+VDCidYtdJkXBucBDxYtUlxD4B/7hpwByw4eMsEw67J22pvjqBR6TqF/vlC23jGIocOM25nNjnMv9cQfW2wWyOEynTfGYrXFOO1odLOjhZ9SDi0lQcNCNr3PfPtMxfAbvhCkD/kxeY9mxxqG22k1yvnMWQjp6eaoeO7R6XTwUV/gn+NRp8yq5rynM673K0ZXyaQaoNoVstVGZI2NsTWfiUpO0zVpITVhgGT7dVbsUk+a8Y5oQfeospdUmeedWZJjNb/Toj0+DMBPxMDmTXXTnjKACKokVtCm4IWBUA=
