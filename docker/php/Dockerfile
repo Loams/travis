@@ -19,8 +19,12 @@ RUN docker-php-ext-install pdo \
     mbstring \
     bcmath
 
+WORKDIR /var/code
+
+COPY . /var/code
+
 RUN chown -R www-data /var/code/storage
 RUN chown -R www-data /var/code/public
 RUN chown -R www-data /var/code/bootstrap/cache
 
-WORKDIR /var/code
+
