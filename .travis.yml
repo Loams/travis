@@ -9,7 +9,7 @@ before_install:
   - composer global require 'hirak/prestissimo:^0.3'
   - mysql -e 'CREATE DATABASE unittest;'
   - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('test') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-  - sudo mysql_upgrade -u root -pnew_password
+  - sudo mysql_upgrade -u root -ptest
   - sudo service mysql restart
 script:
   - set -e
